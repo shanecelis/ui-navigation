@@ -248,14 +248,20 @@ pub fn default_keyboard_input(
 pub fn update_boundaries(
     mut commands: Commands,
     mut boundaries: Option<ResMut<ScreenBoundaries>>,
-    targets: Query<&TargetCamera, Changed<TargetCamera>>,
-    cam: Query<&Camera>,
+    targets: Query<&TargetCamera>,
+    cameras: Query<&Camera>,
 ) {
-    // TODO: this assumes there is only a single camera with UI.
+    // TODO: This is very broken. It runs every frame instead of only on changes
+    // and assumes only one UI camera might exist.
+
     let mut update_boundaries = || {
-        let first_ui_cam = targets.iter().next()?;
-        let cam = cam.get(first_ui_cam.0).ok()?;
-        let physical_size = cam.physical_viewport_size()?;
+        let first_ui_cam = targets
+            .iter()
+            .next()
+            .map_or_else(|| cameras.iter().next(), |cam| cameras.get(cam.0).ok())?;
+
+        let physical_size = first_ui_cam.physical_viewport_size()?;
+
         let new_boundaries = ScreenBoundaries {
             position: Vec2::ZERO,
             screen_edge: crate::resolve::Rect {
