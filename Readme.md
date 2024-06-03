@@ -386,8 +386,8 @@ fn main() {
         ));
 }
 
-fn return_trigger_action(mut requests: EventWriter<NavRequest>, input: Res<Input<KeyCode>>) {
-    if input.just_pressed(KeyCode::Return) {
+fn return_trigger_action(mut requests: EventWriter<NavRequest>, input: Res<ButtonInput<KeyCode>>) {
+    if input.just_pressed(KeyCode::Enter) {
         requests.send(NavRequest::Action);
     }
 }
