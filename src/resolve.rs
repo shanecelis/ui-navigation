@@ -54,9 +54,8 @@ use bevy::{
 };
 #[cfg(feature = "bevy_ui")]
 use bevy::{
-    math::Vec3Swizzles,
+    math::{FloatOrd, Vec3Swizzles},
     prelude::{GlobalTransform, Res},
-    utils::FloatOrd,
 };
 
 use non_empty_vec::NonEmpty;
