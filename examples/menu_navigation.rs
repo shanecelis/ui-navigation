@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    color::palettes::css,
+};
 
 use bevy_ui_navigation::{
     prelude::{
@@ -78,11 +81,11 @@ fn button_system(
 ) {
     for (focus, mut material) in interaction_query.iter_mut() {
         let color = match focus.state() {
-            FocusState::Focused => Color::ORANGE_RED,
-            FocusState::Active => Color::GOLD,
-            FocusState::Prioritized => Color::GRAY,
-            FocusState::Inert => Color::DARK_GRAY,
-            FocusState::Blocked => Color::ANTIQUE_WHITE,
+            FocusState::Focused => css::ORANGE_RED,
+            FocusState::Active => css::GOLD,
+            FocusState::Prioritized => css::GRAY,
+            FocusState::Inert => css::DARK_GRAY,
+            FocusState::Blocked => css::ANTIQUE_WHITE,
         };
         *material = color.into();
     }
