@@ -224,7 +224,9 @@ where
             .add_systems(
                 PreUpdate,
                 (named::resolve_named_menus, resolve::insert_tree_menus).chain(),
-            );
+            )
+            .observe(resolve::observe_nav_requests::<STGY>)
+            ;
     }
 }
 

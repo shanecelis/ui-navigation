@@ -39,6 +39,7 @@ use std::num::NonZeroUsize;
 
 #[cfg(feature = "bevy_reflect")]
 use bevy::ecs::reflect::{ReflectComponent, ReflectResource};
+use bevy::ecs::observer::Trigger;
 use bevy::hierarchy::{Children, Parent};
 use bevy::log::{debug, warn};
 use bevy::prelude::{Changed, FromWorld};
@@ -886,6 +887,46 @@ pub(crate) fn consistent_menu(
             break;
         }
     }
+}
+
+pub(crate) fn observe_nav_requests<STGY: SystemParam>(
+    trigger: Trigger<NavRequest>,
+    mut queries: ParamSet<(NavQueries, MutQueries)>,
+    mquery: StaticSystemParam<STGY>,
+    mut lock: ResMut<NavLock>,
+    mut events: EventWriter<NavEvent>,
+    mut commands: Commands,
+) where
+    for<'w, 's> SystemParamItem<'w, 's, STGY>: MenuNavigationStrategy,
+{
+    let no_focused = "Tried to execute a NavRequest \
+                      when no focusables exist, \
+                      NavRequest does nothing if \
+                      there isn't any navigation to do.";
+
+    // Cache focus result from previous iteration to avoid re-running costly `pick_first_focused`
+    let mut computed_focused = None;
+    let request = trigger.event();
+    if lock.is_locked() && *request != NavRequest::Unlock {
+        return;
+    }
+    // We use `pick_first_focused` instead of `Focused` component for first
+    // iteration because `set_first_focused` just before `listen_nav_request`
+    // without a command flush in-between.
+    let picked = || queries.p0().pick_first_focused();
+    let focused = match computed_focused.or_else(picked) {
+        Some(focused) => focused,
+        None => {
+            warn!(no_focused);
+            return;
+        }
+    };
+    let from = Vec::new();
+    let event = resolve(focused, *request, &queries.p0(), &mut lock, from, &*mquery);
+    if let NavEvent::FocusChanged { to, from } = &event {
+        computed_focused = Some(queries.p1().update_focus(from, to));
+    };
+    commands.trigger(event);
 }
 
 /// Listen to [`NavRequest`] and update the state of [`Focusable`] entities
